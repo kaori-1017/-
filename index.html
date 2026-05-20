@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>カラダが見える体質チェック</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --rose: #c9626a;
+  --rose-light: #f9e8e8;
+  --rose-mid: #e8a0a5;
+  --green: #7a9e7e;
+  --bg: #fef9f5;
+  --text: #3d2b1f;
+  --text-sub: #8a6a5a;
+  --card: #ffffff;
+  --shadow: 0 4px 24px rgba(100,50,40,0.09);
+  --radius: 20px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Hiragino Kaku Gothic ProN','Hiragino Sans',Meiryo,sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.7;
+}
+.screen { display: none; animation: fadeIn .35s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+/* ===== WELCOME ===== */
+.wrap { max-width: 660px; margin: 0 auto; padding: 24px 20px 60px; }
+.welcome-hero {
+  text-align: center;
+  padding: 52px 20px 36px;
+}
+.hero-icon { font-size: 64px; margin-bottom: 18px; }
+.hero-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--rose);
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+.hero-sub {
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: var(--rose-mid);
+  margin-bottom: 24px;
+}
+.divider { width: 48px; height: 3px; background: var(--rose); border-radius: 2px; margin: 0 auto 28px; }
+.hero-desc {
+  font-size: 15px;
+  color: var(--text-sub);
+  line-height: 1.9;
+  margin-bottom: 40px;
+}
+.btn-start {
+  background: var(--rose);
+  color: #fff;
+  border: none;
+  padding: 18px 52px;
+  border-radius: 60px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(201,98,106,.40);
+  transition: all .25s;
+  font-family: inherit;
+}
+.btn-start:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(201,98,106,.45); }
+.info-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-top: 36px; }
+.info-card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 20px 12px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.info-card .num { font-size: 28px; font-weight: 800; color: var(--rose); }
+.info-card .lbl { font-size: 12px; color: var(--text-sub); margin-top: 4px; }
+
+/* ===== QUESTIONS ===== */
+.progress-wrap { padding: 20px 0 8px; }
+.progress-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.progress-label { font-size: 13px; color: var(--text-sub); }
+.progress-pct { font-size: 13px; font-weight: 700; color: var(--rose); }
+.progress-bar { height: 5px; background: #f0e0e0; border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--rose-mid), var(--rose)); border-radius: 3px; transition: width .4s ease; }
+
+.q-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 32px 28px;
+  margin: 16px 0;
+  box-shadow: var(--shadow);
+}
+.q-tag {
+  display: inline-block;
+  background: var(--rose-light);
+  color: var(--rose);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+}
+.q-text { font-size: 18px; font-weight: 600; line-height: 1.65; margin-bottom: 28px; }
+.answers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ans-btn {
+  padding: 16px 8px;
+  border-radius: 14px;
+  border: 2px solid #ecdada;
+  background: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.ans-btn.yes-plain { color: var(--rose); }
+.ans-btn.no-plain  { color: #aaa; }
+.ans-btn.yes-sel   { background: var(--rose); border-color: var(--rose); color: #fff; transform: scale(1.03); }
+.ans-btn.no-sel    { background: #f4f4f4; border-color: #ddd; color: #999; transform: scale(1.03); }
+.ans-btn:hover:not(.yes-sel):not(.no-sel) { transform: scale(1.02); box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+
+.nav { display: flex; justify-content: space-between; align-items: center; padding: 12px 0 0; }
+.btn-nav {
+  padding: 12px 28px;
+  border-radius: 50px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .2s;
+}
+.btn-prev { background: #f0e8e8; color: var(--text-sub); }
+.btn-prev:hover { background: #e8d8d8; }
+.btn-next {
+  background: var(--rose);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(201,98,106,.35);
+}
+.btn-next:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(201,98,106,.45); }
+.btn-nav:disabled { opacity: .35; cursor: not-allowed; transform: none !important; }
+
+.skip-note { text-align: center; font-size: 12px; color: #bbb; margin-top: 16px; }
+
+/* ===== RESULTS ===== */
+.result-hero { text-align: center; padding: 40px 20px 24px; }
+.result-title { font-size: 24px; font-weight: 800; color: var(--rose); margin-bottom: 8px; }
+.result-note { font-size: 13px; color: var(--text-sub); }
+
+.chart-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 28px 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+}
+.chart-title {
+  text-align: center;
+  font-size: 17px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+  margin-bottom: 20px;
+}
+.chart-wrap { position: relative; max-width: 380px; margin: 0 auto; }
+
+.section-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-sub);
+  letter-spacing: 1px;
+  margin: 28px 0 14px;
+}
+
+.type-cards { display: flex; flex-direction: column; gap: 14px; }
+.type-card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 20px 20px 16px;
+  box-shadow: var(--shadow);
+  border-left: 4px solid #ead0d0;
+  transition: all .25s;
+}
+.type-card.top { border-left-color: var(--rose); }
+.type-card.second { border-left-color: var(--rose-mid); }
+.type-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.type-name { font-size: 17px; font-weight: 700; }
+.type-pt { font-size: 13px; color: var(--text-sub); }
+.score-bar { height: 7px; background: #f0e8e8; border-radius: 4px; overflow: hidden; margin-bottom: 12px; }
+.score-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--rose-mid), var(--rose)); transition: width 1s ease; }
+.badge-top { display: inline-block; background: var(--rose); color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-left: 8px; vertical-align: middle; }
+.badge-second { display: inline-block; background: var(--rose-mid); color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-left: 8px; vertical-align: middle; }
+.type-desc-block { border-top: 1px solid #f5eaea; padding-top: 12px; margin-top: 4px; }
+.type-desc-title { font-size: 13px; font-weight: 700; color: var(--rose); margin-bottom: 4px; }
+.type-desc-text { font-size: 14px; color: #5a4a40; line-height: 1.75; }
+.type-advice { margin-top: 10px; }
+.type-advice-title { font-size: 13px; font-weight: 700; color: var(--green); margin-bottom: 4px; }
+.type-advice-text { font-size: 14px; color: #4a6a50; line-height: 1.75; }
+
+.btn-restart {
+  display: block;
+  width: 100%;
+  background: var(--rose);
+  color: #fff;
+  border: none;
+  padding: 18px;
+  border-radius: 60px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  margin: 32px 0 12px;
+  font-family: inherit;
+  box-shadow: 0 6px 20px rgba(201,98,106,.40);
+  transition: all .25s;
+}
+.btn-restart:hover { transform: translateY(-2px); }
+
+/* Warning */
+.warn-toast {
+  display: none;
+  background: #ffe8e8;
+  border: 1px solid var(--rose-mid);
+  color: var(--rose);
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 14px;
+  text-align: center;
+  margin: 8px 0;
+}
+.warn-toast.show { display: block; }
+
+@media (max-width: 480px) {
+  .hero-title { font-size: 22px; }
+  .q-text { font-size: 16px; }
+  .info-cards { grid-template-columns: repeat(3,1fr); gap: 8px; }
+  .info-card .num { font-size: 22px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ====== WELCOME ====== -->
+<div id="s-welcome" class="screen active">
+<div class="wrap">
+  <div class="welcome-hero">
+    <div class="hero-icon">🌸</div>
+    <p class="hero-sub">おんわか漢方スクール</p>
+    <h1 class="hero-title">カラダが見える<br>体質チェック</h1>
+    <div class="divider"></div>
+    <p class="hero-desc">
+      漢方の視点から、あなたの体質を<br>
+      8つのタイプで分析します。<br>
+      当てはまる症状を選ぶだけで、<br>
+      あなただけの「体質表」が完成します。
+    </p>
+    <button class="btn-start" onclick="startQuiz()">チェックを始める</button>
+  </div>
+  <div class="info-cards">
+    <div class="info-card"><div class="num">30</div><div class="lbl">問の質問</div></div>
+    <div class="info-card"><div class="num">8</div><div class="lbl">体質タイプ</div></div>
+    <div class="info-card"><div class="num">約5</div><div class="lbl">分で完了</div></div>
+  </div>
+</div>
+</div>
+
+<!-- ====== QUESTIONS ====== -->
+<div id="s-questions" class="screen">
+<div class="wrap">
+  <div class="progress-wrap">
+    <div class="progress-row">
+      <span class="progress-label" id="pg-label">1 / 30</span>
+      <span class="progress-pct" id="pg-pct">3%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="pg-fill" style="width:3%"></div></div>
+  </div>
+
+  <div class="q-card">
+    <div class="q-tag" id="q-tag">Q 01</div>
+    <div class="q-text" id="q-text"></div>
+    <div class="answers">
+      <button class="ans-btn yes-plain" id="btn-yes" onclick="select(true)">✓ 当てはまる</button>
+      <button class="ans-btn no-plain"  id="btn-no"  onclick="select(false)">✗ 当てはまらない</button>
+    </div>
+  </div>
+
+  <div class="warn-toast" id="warn-toast">すべての質問に答えてから結果を見てください</div>
+
+  <div class="nav">
+    <button class="btn-nav btn-prev" id="btn-prev" onclick="goPrev()" disabled>← 戻る</button>
+    <button class="btn-nav btn-next" id="btn-next" onclick="goNext()">次へ →</button>
+  </div>
+  <p class="skip-note">※ 未選択のまま「次へ」を押してもスキップできます</p>
+</div>
+</div>
+
+<!-- ====== RESULTS ====== -->
+<div id="s-results" class="screen">
+<div class="wrap">
+  <div class="result-hero">
+    <div style="font-size:52px;margin-bottom:14px">🌿</div>
+    <h2 class="result-title">あなたの体質表</h2>
+    <div class="divider"></div>
+    <p class="result-note">数値が高いほど、その体質の傾向が強いことを示しています</p>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">カラダが見える体質表</div>
+    <div class="chart-wrap">
+      <canvas id="radarChart"></canvas>
+    </div>
+  </div>
+
+  <div class="section-label">▶ 体質スコア詳細</div>
+  <div class="type-cards" id="type-cards"></div>
+
+  <button class="btn-restart" onclick="restart()">🔄 もう一度チェックする</button>
+</div>
+</div>
+
+<script>
+/* ===================== DATA ===================== */
+// Columns: A=脾気虚 B=腎陽虚 C=血虚 D=陰虚 E=気滞 F=湿痰 G=瘀血 H=水滞
+const QS = [
+  { t:"胸やお腹が張って苦しいことが多い",                s:[0,0,0,0,3,1,0,1] },
+  { t:"イライラしやすく怒りっぽい",                      s:[0,0,0,2,3,0,0,0] },
+  { t:"不眠になりやすい",                               s:[0,0,3,2,3,0,1,0] },
+  { t:"目やにが出やすい",                               s:[0,0,0,0,1,3,0,0] },
+  { t:"尿がよく濃い黄色になる",                          s:[0,0,0,1,0,3,0,0] },
+  { t:"肩が凝りやすい",                                 s:[0,0,0,0,3,1,3,1] },
+  { t:"シミ・そばかすが多い、もしくは皮膚が黒ずみやすい",   s:[0,0,0,2,0,0,3,0] },
+  { t:"唇や歯茎の色が紫に近い",                          s:[0,0,0,0,0,0,3,0] },
+  { t:"頭が重く感じられることが多い",                     s:[1,0,0,0,0,1,1,3] },
+  { t:"黄色い粘りのある痰や鼻水が出る",                   s:[0,0,0,0,0,3,0,0] },
+  { t:"透明で水のような鼻水や痰が出る",                   s:[2,2,0,0,0,0,0,3] },
+  { t:"雨や湿度の高い日は体調が悪くなることが多い",          s:[0,1,0,0,0,1,0,3] },
+  { t:"どちらかといえば痩せているほうだ",                  s:[3,1,3,2,2,0,0,0] },
+  { t:"どちらかといえば太っているほうだ",                  s:[0,0,0,0,0,2,0,3] },
+  { t:"皮膚が乾燥でカサカサしている",                     s:[0,0,3,1,0,0,0,1] },
+  { t:"舌の縁がギザギザになっている",                     s:[3,1,0,0,0,0,0,2] },
+  { t:"舌苔がびっしりついていて厚みがある",                s:[2,1,0,0,0,2,0,0] },
+  { t:"舌の裏の静脈が太く膨らんで見える",                  s:[0,0,0,0,0,0,3,0] },
+  { t:"あざや内出血ができやすい",                         s:[3,2,0,0,0,0,2,0] },
+  { t:"食が細いほうだ",                                  s:[3,0,0,0,0,0,0,0] },
+  { t:"下痢や軟便になることがよくある",                    s:[3,1,0,0,0,1,0,2] },
+  { t:"耳が聞こえにくいときが多い",                       s:[0,3,0,1,0,0,0,0] },
+  { t:"よく、腰や膝に疲れや脱力感を覚える",                s:[0,3,0,0,0,0,0,0] },
+  { t:"むくみを感じることが多い",                         s:[0,3,0,0,0,0,0,2] },
+  { t:"髪の毛が抜けやすい",                              s:[0,2,3,0,0,1,1,0] },
+  { t:"目が疲れたり、乾燥しやすい",                       s:[0,0,3,1,0,0,0,0] },
+  { t:"筋肉が痙攣したり、つりやすい",                     s:[0,0,3,1,1,0,0,0] },
+  { t:"日頃、のどの渇きを感じることが多い",                s:[0,0,1,3,2,1,1,0] },
+  { t:"体温は高くないが、体を熱っぽく感じる",              s:[0,0,0,3,2,1,0,0] },
+  { t:"過労時や夜に、よく手のひらや足の裏が熱くなる",       s:[0,0,0,3,0,0,0,0] },
+];
+
+const TYPES = ['脾気虚','腎陽虚','血虚','陰虚','気滞','湿痰','瘀血','水滞'];
+
+const COLORS = ['#c9626a','#d08060','#a06080','#8080c0','#60a080','#6098b0','#9070a0','#b08060'];
+
+const INFO = {
+  '脾気虚': {
+    desc: '消化器系（胃腸）の働きが弱く、気（エネルギー）が不足している状態です。疲れやすい、食欲不振、軟便・下痢になりやすい、声が小さい、顔色が黄みがかるなどの傾向があります。',
+    advice: '温かく消化の良い食事を心がけましょう。白米・山芋・かぼちゃ・なつめ・鶏肉がおすすめ。冷たいもの・生もの・脂っこいものは控えて。'
+  },
+  '腎陽虚': {
+    desc: '腎の陽気（体を温める根本のエネルギー）が不足した状態です。冷え性（特に下半身）、腰膝の弱さ・だるさ、耳鳴り・難聴、頻尿・夜間尿、むくみなどが出やすくなります。',
+    advice: '体を温める食材を積極的に取り入れましょう。生姜・シナモン・ニンニク・黒豆・くるみ・羊肉・エビがおすすめ。冷え対策を徹底して。'
+  },
+  '血虚': {
+    desc: '血（栄養・潤い）が不足している状態です。顔色が悪い・白い、めまい・立ちくらみ、物忘れ、爪が割れやすい、不眠、生理が少ない・薄いなどの傾向があります。',
+    advice: '血を補う食材を意識して摂りましょう。レバー・ほうれん草・ひじき・なつめ・クコの実・黒ごま・いちご・人参がおすすめです。'
+  },
+  '陰虚': {
+    desc: '陰液（体を潤す水分）が不足し、相対的に熱がこもっている状態です。のどの渇き、手足の火照り・ほてり、寝汗、午後からの微熱感、目の乾燥などが出やすくなります。',
+    advice: '潤いを補う食材を意識して。白きくらげ・豆腐・山芋・梨・ゆり根・百合根・はちみつがおすすめ。辛いもの・アルコール・夜更かしは控えて。'
+  },
+  '気滞': {
+    desc: '気（エネルギー）の流れが滞っている状態です。ストレスに弱い、胸・お腹の張り感、イライラ・気分の浮き沈み、PMSがひどい、ため息が多いなどの傾向があります。',
+    advice: '気の流れを促す食材がおすすめ。セロリ・三つ葉・大根・柑橘類の皮・ジャスミン茶・薄荷(ミント)を取り入れて。適度な運動やストレス発散も大切です。'
+  },
+  '湿痰': {
+    desc: '身体に余分な湿気（痰湿）が溜まっている状態です。体が重だるい、むくみやすい、痰が出やすい、胃もたれ、肥満・太りやすい、肌がベタつくなどの傾向があります。',
+    advice: '余分な湿気を取り除く食材を積極的に。昆布・もやし・小豆・薏苡仁（はと麦）・冬瓜・緑豆がおすすめ。脂っこいもの・甘いもの・乳製品は控えましょう。'
+  },
+  '瘀血': {
+    desc: '血（血液）の流れが滞っている状態です。月経痛・血塊が出る、シミ・くすみ・クマ、慢性的な頭痛、舌・唇が暗紫色、肩こりがひどいなどが出やすくなります。',
+    advice: '血行を促す食材を意識して。さんざし・紅花・玉ねぎ・青魚・酢・生姜がおすすめ。適度な有酸素運動も効果的。体を冷やさないことも大切です。'
+  },
+  '水滞': {
+    desc: '身体の水分バランスが乱れ、余分な水が滞っている状態です。全身・顔・脚のむくみ、頭の重さ・頭痛、湿気の多い日に不調、めまい、関節の痛みなどが出やすくなります。',
+    advice: '水分の巡りを改善する食材を。小豆・とうもろこし・はと麦・冬瓜・緑茶・生姜がおすすめ。塩分・冷たいもの・過剰な水分摂取は控えましょう。'
+  }
+};
+
+/* ===================== STATE ===================== */
+let cur = 0;
+let ans = new Array(30).fill(null);
+let radarChart = null;
+
+/* ===================== QUIZ LOGIC ===================== */
+function startQuiz() {
+  show('s-questions');
+  render(0);
+}
+
+function render(i) {
+  const q = QS[i];
+  document.getElementById('q-tag').textContent = 'Q ' + String(i+1).padStart(2,'0');
+  document.getElementById('q-text').textContent = q.t;
+
+  const pct = Math.round(((i+1)/30)*100);
+  document.getElementById('pg-label').textContent = (i+1) + ' / 30';
+  document.getElementById('pg-pct').textContent = pct + '%';
+  document.getElementById('pg-fill').style.width = pct + '%';
+
+  refreshBtns(i);
+  document.getElementById('btn-prev').disabled = (i === 0);
+  document.getElementById('btn-next').textContent = (i === 29) ? '結果を見る →' : '次へ →';
+  document.getElementById('warn-toast').classList.remove('show');
+}
+
+function refreshBtns(i) {
+  const yb = document.getElementById('btn-yes');
+  const nb = document.getElementById('btn-no');
+  yb.className = 'ans-btn ' + (ans[i] === true  ? 'yes-sel' : 'yes-plain');
+  nb.className = 'ans-btn ' + (ans[i] === false ? 'no-sel'  : 'no-plain');
+}
+
+function select(v) {
+  ans[cur] = v;
+  refreshBtns(cur);
+  setTimeout(() => {
+    if (cur < 29) { cur++; render(cur); }
+    else showResults();
+  }, 380);
+}
+
+function goPrev() {
+  if (cur > 0) { cur--; render(cur); }
+}
+
+function goNext() {
+  if (cur < 29) { cur++; render(cur); }
+  else showResults();
+}
+
+/* ===================== CALCULATE ===================== */
+function calc() {
+  const totals = new Array(8).fill(0);
+  ans.forEach((a, i) => {
+    if (a === true) QS[i].s.forEach((v, j) => totals[j] += v);
+  });
+  return totals.map(t => Math.round((t / 2) * 10) / 10);
+}
+
+/* ===================== RESULTS ===================== */
+function showResults() {
+  show('s-results');
+  const scores = calc();
+  drawRadar(scores);
+  renderCards(scores);
+}
+
+function drawRadar(scores) {
+  if (radarChart) { radarChart.destroy(); radarChart = null; }
+
+  const ctx = document.getElementById('radarChart').getContext('2d');
+  const maxVal = Math.max(...scores, 6);
+  const ceil = Math.ceil(maxVal / 3) * 3;
+
+  radarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: TYPES,
+      datasets: [{
+        label: 'あなたの体質',
+        data: scores,
+        backgroundColor: 'rgba(201,98,106,0.18)',
+        borderColor: 'rgba(201,98,106,0.85)',
+        borderWidth: 2.5,
+        pointBackgroundColor: 'rgba(201,98,106,1)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          beginAtZero: true,
+          max: ceil || 6,
+          ticks: { stepSize: Math.max(1, Math.round(ceil/5)), font:{ size:10 }, color:'#aaa' },
+          pointLabels: { font:{ size:13, weight:'bold' }, color:'#3d2b1f' },
+          grid: { color:'rgba(0,0,0,0.08)' },
+          angleLines: { color:'rgba(0,0,0,0.08)' }
+        }
+      }
+    }
+  });
+}
+
+function renderCards(scores) {
+  const sorted = TYPES.map((n,i) => ({ n, s: scores[i], i }))
+    .sort((a,b) => b.s - a.s);
+
+  const maxS = sorted[0].s;
+  const container = document.getElementById('type-cards');
+  container.innerHTML = '';
+
+  sorted.forEach((item, rank) => {
+    const pct = maxS > 0 ? Math.round((item.s / maxS) * 100) : 0;
+    const isTop = rank === 0 && item.s > 0;
+    const isSecond = rank === 1 && item.s >= maxS * 0.65 && item.s > 0;
+    const showDetail = isTop || isSecond;
+
+    const card = document.createElement('div');
+    card.className = 'type-card' + (isTop ? ' top' : isSecond ? ' second' : '');
+
+    const badge = isTop ? '<span class="badge-top">最も強い傾向</span>'
+                : isSecond ? '<span class="badge-second">次点</span>' : '';
+
+    const detail = showDetail ? `
+      <div class="type-desc-block">
+        <div class="type-desc-title">体質の特徴</div>
+        <div class="type-desc-text">${INFO[item.n].desc}</div>
+        <div class="type-advice">
+          <div class="type-advice-title">養生アドバイス 🌿</div>
+          <div class="type-advice-text">${INFO[item.n].advice}</div>
+        </div>
+      </div>` : '';
+
+    card.innerHTML = `
+      <div class="type-row">
+        <div class="type-name">${item.n}${badge}</div>
+        <div class="type-pt">${item.s} pt</div>
+      </div>
+      <div class="score-bar">
+        <div class="score-fill" style="width:${pct}%"></div>
+      </div>
+      ${detail}
+    `;
+    container.appendChild(card);
+  });
+}
+
+/* ===================== UTILS ===================== */
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function restart() {
+  ans = new Array(30).fill(null);
+  cur = 0;
+  if (radarChart) { radarChart.destroy(); radarChart = null; }
+  show('s-welcome');
+}
+</script>
+</body>
+</html>
